@@ -1,0 +1,86 @@
+service: s3-gb97-images
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'prod'} # Set the default stage to 'dev'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: "s3:*"
+          Resource: arn:aws:s3:::bucket-images-gb97/*
+  environment:
+    BUCKET: bucket-images-gb97-${self:provider.stage}
+
+package:
+  individually: true
+  patterns:
+    - "!*/**"
+
+functions:
+  signedURL:
+    handler: signedurl/handler.signedS3URL
+    package:
+      patterns:
+        - "signedurl/handler.js"
+        - "node_modules/**"
+    events:
+      - http:
+          path: signedurl
+          method: GET
+          request:
+            parameters:
+              querystrings:
+                filename: true
+  thumbGenerator:
+    handler: thumbnail/handler.thumbnailGenerator
+    layers:
+      - { Ref: BaseLambdaLayer }
+    package:
+      patterns:
+        - "thumbnail/handler.js"
+    events:
+      - s3:
+          bucket: bucket-images-gb97
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: upload/
+
+layers:
+  base:
+    name: "prd-dependencies"
+    compatibleRuntimes:
+      - "nodejs14.x"
+    package:
+      artifact: app/nodejs.zip
+
+resources:
+  Resources:
+    S3Bucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        BucketName: bucket-images-gb97
+        # Granting public access to bucket
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+    SampleBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref S3Bucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Action:
+                - "s3:GetObject"
+              Effect: Allow
+              Resource: !Join
+                - ""
+                - - "arn:aws:s3:::"
+                  - !Ref S3Bucket
+                  - /*
+              Principal: "*"

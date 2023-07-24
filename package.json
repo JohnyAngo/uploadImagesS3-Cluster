@@ -1,0 +1,21 @@
+{
+  "name": "hola-mundo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk": "^2.1256.0",
+    "serverless": "^3.33.0",
+    "serverless-apigateway-service-proxy": "^2.2.1",
+    "serverless-domain-manager": "^6.2.0",
+    "serverless-offline": "^11.3.0"
+  },
+  "dependencies": {
+    "sharp": "^0.31.2"
+  }
+}
