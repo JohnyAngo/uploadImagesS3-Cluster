@@ -12,6 +12,9 @@ provider:
           Resource: arn:aws:s3:::bucket-images-gb97-pos/*
   environment:
     BUCKET: bucket-images-gb97-pos
+  #         Resource: arn:aws:s3:::bucket-images-gb97-prod/*
+  # environment:
+  #   BUCKET: bucket-images-gb97-prod
 
 package:
   individually: true
@@ -76,6 +79,7 @@ resources:
       Type: "AWS::S3::Bucket"
       Properties:
         BucketName: bucket-images-gb97-pos
+        # BucketName: bucket-images-gb97-prod
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false
