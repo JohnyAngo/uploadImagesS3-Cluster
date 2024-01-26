@@ -3,15 +3,15 @@ service: s3-gb97-images
 provider:
   name: aws
   runtime: nodejs14.x
-  stage: ${opt:stage, 'prod'} # Set the default stage to 'dev'
+  stage: ${opt:stage, 'prod'}
   iam:
     role:
       statements:
         - Effect: Allow
           Action: "s3:*"
-          Resource: arn:aws:s3:::bucket-images-gb97/*
+          Resource: arn:aws:s3:::bucket-images-gb97-prod/*
   environment:
-    BUCKET: bucket-images-gb97-${self:provider.stage}
+    BUCKET: bucket-images-gb97-prod
 
 package:
   individually: true
@@ -33,20 +33,34 @@ functions:
             parameters:
               querystrings:
                 filename: true
-  thumbGenerator:
-    handler: thumbnail/handler.thumbnailGenerator
-    layers:
-      - { Ref: BaseLambdaLayer }
+  deleteImage:
+    handler: deleteimg/handler.deleteImageFromS3
     package:
       patterns:
-        - "thumbnail/handler.js"
+        - "deleteimage/handler.js"
+        - "node_modules/**"
     events:
-      - s3:
-          bucket: bucket-images-gb97
-          event: s3:ObjectCreated:*
-          existing: true
-          rules:
-            - prefix: upload/
+      - http:
+          path: deleteimage
+          method: DELETE
+          request:
+            parameters:
+              querystrings:
+                filename: true
+  # thumbGenerator:
+  #   handler: thumbnail/handler.thumbnailGenerator
+  #   layers:
+  #     - { Ref: BaseLambdaLayer }
+  #   package:
+  #     patterns:
+  #       - "thumbnail/handler.js"
+  #   events:
+  #     - s3:
+  #         bucket: bucket-images-gb97
+  #         event: s3:ObjectCreated:*
+  #         existing: true
+  #         rules:
+  #           - prefix: upload/
 
 layers:
   base:
@@ -61,8 +75,7 @@ resources:
     S3Bucket:
       Type: "AWS::S3::Bucket"
       Properties:
-        BucketName: bucket-images-gb97
-        # Granting public access to bucket
+        BucketName: bucket-images-gb97-prod
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false
