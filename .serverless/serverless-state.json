@@ -1,12 +1,13 @@
 {
   "service": {
-    "service": "s3-gb97-images",
+    "service": "s3-gb97-images-pos",
     "serviceObject": {
-      "name": "s3-gb97-images"
+      "name": "s3-gb97-images-pos"
     },
     "provider": {
       "name": "aws",
       "runtime": "nodejs14.x",
+      "stage": "prod",
       "iam": {
         "role": {
           "statements": [
@@ -15,15 +16,14 @@
               "Action": [
                 "s3:*"
               ],
-              "Resource": "arn:aws:s3:::bucket-images-gb97/*"
+              "Resource": "arn:aws:s3:::bucket-images-gb97-pos/*"
             }
           ]
         }
       },
       "environment": {
-        "BUCKET": "bucket-images-gb97"
+        "BUCKET": "bucket-images-gb97-pos"
       },
-      "stage": "dev",
       "region": "us-east-1",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
@@ -102,13 +102,13 @@
           "SignedURLLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/s3-gb97-images-dev-signedURL"
+              "LogGroupName": "/aws/lambda/s3-gb97-images-pos-prod-signedURL"
             }
           },
-          "ThumbGeneratorLogGroup": {
+          "DeleteImageLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/s3-gb97-images-dev-thumbGenerator"
+              "LogGroupName": "/aws/lambda/s3-gb97-images-pos-prod-deleteImage"
             }
           },
           "IamRoleLambdaExecution": {
@@ -136,8 +136,8 @@
                     "Fn::Join": [
                       "-",
                       [
-                        "s3-gb97-images",
-                        "dev",
+                        "s3-gb97-images-pos",
+                        "prod",
                         "lambda"
                       ]
                     ]
@@ -154,7 +154,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/s3-gb97-images-dev*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/s3-gb97-images-pos-prod*:*"
                           }
                         ]
                       },
@@ -165,7 +165,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/s3-gb97-images-dev*:*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/s3-gb97-images-pos-prod*:*:*"
                           }
                         ]
                       },
@@ -181,8 +181,8 @@
                 "Fn::Join": [
                   "-",
                   [
-                    "s3-gb97-images",
-                    "dev",
+                    "s3-gb97-images-pos",
+                    "prod",
                     {
                       "Ref": "AWS::Region"
                     },
@@ -199,7 +199,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z/nodejs.zip"
+                "S3Key": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z/nodejs.zip"
               },
               "LayerName": "prd-dependencies",
               "CompatibleRuntimes": [
@@ -214,16 +214,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z/signedURL.zip"
+                "S3Key": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z/signedURL.zip"
               },
               "Handler": "signedurl/handler.signedS3URL",
               "Runtime": "nodejs14.x",
-              "FunctionName": "s3-gb97-images-dev-signedURL",
+              "FunctionName": "s3-gb97-images-pos-prod-signedURL",
               "MemorySize": 1024,
               "Timeout": 6,
               "Environment": {
                 "Variables": {
-                  "BUCKET": "bucket-images-gb97"
+                  "BUCKET": "bucket-images-gb97-pos"
                 }
               },
               "Role": {
@@ -237,23 +237,23 @@
               "SignedURLLogGroup"
             ]
           },
-          "ThumbGeneratorLambdaFunction": {
+          "DeleteImageLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z/thumbGenerator.zip"
+                "S3Key": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z/deleteImage.zip"
               },
-              "Handler": "thumbnail/handler.thumbnailGenerator",
+              "Handler": "deleteimg/handler.deleteImageFromS3",
               "Runtime": "nodejs14.x",
-              "FunctionName": "s3-gb97-images-dev-thumbGenerator",
+              "FunctionName": "s3-gb97-images-pos-prod-deleteImage",
               "MemorySize": 1024,
               "Timeout": 6,
               "Environment": {
                 "Variables": {
-                  "BUCKET": "bucket-images-gb97"
+                  "BUCKET": "bucket-images-gb97-pos"
                 }
               },
               "Role": {
@@ -261,18 +261,13 @@
                   "IamRoleLambdaExecution",
                   "Arn"
                 ]
-              },
-              "Layers": [
-                {
-                  "Ref": "BaseLambdaLayer"
-                }
-              ]
+              }
             },
             "DependsOn": [
-              "ThumbGeneratorLogGroup"
+              "DeleteImageLogGroup"
             ]
           },
-          "SignedURLLambdaVersion7uLdijLItvh8GHU0IFFtHcG8lXFi6xk7sCnRbSbL02Q": {
+          "SignedURLLambdaVersionlzRfPCG5ENoBJT42wUyQzcweWqlwzBgJQTamETh8bs": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
@@ -282,162 +277,20 @@
               "CodeSha256": "ymJ7BardWe+6/P0tyn3PQ2xhG29qxSq9dhvisrBLZm8="
             }
           },
-          "ThumbGeneratorLambdaVersionp1EvTogHEjRovQtDN7Jnc5o9J53THgRSfmsgYBQo00": {
+          "DeleteImageLambdaVersionMXsaVkpE7YEPLpiaFCVe4zYIiBVLjeekgcvx17J8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
-                "Ref": "ThumbGeneratorLambdaFunction"
+                "Ref": "DeleteImageLambdaFunction"
               },
-              "CodeSha256": "08I7mj1QZV4Bot06a0Suk9u2ae2JA4oEHmFcE+OTII0="
+              "CodeSha256": "i69+2D7eC6VTdpri9LhXmcxmGzuzcVRr1Q6pVZE+smQ="
             }
-          },
-          "ThumbGeneratorCustomS31": {
-            "Type": "Custom::S3",
-            "Version": 1,
-            "DependsOn": [
-              "ThumbGeneratorLambdaFunction",
-              "CustomDashresourceDashexistingDashs3LambdaFunction"
-            ],
-            "Properties": {
-              "ServiceToken": {
-                "Fn::GetAtt": [
-                  "CustomDashresourceDashexistingDashs3LambdaFunction",
-                  "Arn"
-                ]
-              },
-              "FunctionName": "s3-gb97-images-dev-thumbGenerator",
-              "BucketName": "bucket-images-gb97",
-              "BucketConfigs": [
-                {
-                  "Event": "s3:ObjectCreated:*",
-                  "Rules": [
-                    {
-                      "Prefix": "upload/"
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          "IamRoleCustomResourcesLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "dev",
-                        "s3-gb97-images",
-                        "custom-resources-lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Resource": {
-                          "Fn::Join": [
-                            ":",
-                            [
-                              "arn",
-                              {
-                                "Ref": "AWS::Partition"
-                              },
-                              "s3",
-                              "",
-                              "",
-                              "bucket-images-gb97"
-                            ]
-                          ]
-                        },
-                        "Action": [
-                          "s3:PutBucketNotification",
-                          "s3:GetBucketNotification"
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Resource": {
-                          "Fn::Join": [
-                            ":",
-                            [
-                              "arn",
-                              {
-                                "Ref": "AWS::Partition"
-                              },
-                              "lambda",
-                              {
-                                "Ref": "AWS::Region"
-                              },
-                              {
-                                "Ref": "AWS::AccountId"
-                              },
-                              "function",
-                              "*"
-                            ]
-                          ]
-                        },
-                        "Action": [
-                          "lambda:AddPermission",
-                          "lambda:RemovePermission"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          "CustomDashresourceDashexistingDashs3LambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "S3Bucket": {
-                  "Ref": "ServerlessDeploymentBucket"
-                },
-                "S3Key": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z/custom-resources.zip"
-              },
-              "FunctionName": "s3-gb97-images-dev-custom-resource-existing-s3",
-              "Handler": "s3/handler.handler",
-              "MemorySize": 1024,
-              "Runtime": "nodejs16.x",
-              "Timeout": 180,
-              "Role": {
-                "Fn::GetAtt": [
-                  "IamRoleCustomResourcesLambdaExecution",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "IamRoleCustomResourcesLambdaExecution"
-            ]
           },
           "ApiGatewayRestApi": {
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
-              "Name": "dev-s3-gb97-images",
+              "Name": "prod-s3-gb97-images-pos",
               "EndpointConfiguration": {
                 "Types": [
                   "EDGE"
@@ -456,6 +309,21 @@
                 ]
               },
               "PathPart": "signedurl",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceDeleteimage": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "deleteimage",
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               }
@@ -505,14 +373,65 @@
               },
               "MethodResponses": [],
               "RequestValidatorId": {
-                "Ref": "ApiGatewayS3gb97imagesRequestValidator"
+                "Ref": "ApiGatewayS3gb97imagesposRequestValidator"
               }
             },
             "DependsOn": [
               "SignedURLLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayS3gb97imagesRequestValidator": {
+          "ApiGatewayMethodDeleteimageDelete": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "DELETE",
+              "RequestParameters": {
+                "method.request.querystring.filename": true
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceDeleteimage"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "DeleteImageLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": [],
+              "RequestValidatorId": {
+                "Ref": "ApiGatewayS3gb97imagesposRequestValidator"
+              }
+            },
+            "DependsOn": [
+              "DeleteImageLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayS3gb97imagesposRequestValidator": {
             "Type": "AWS::ApiGateway::RequestValidator",
             "Properties": {
               "RestApiId": {
@@ -520,19 +439,20 @@
               },
               "ValidateRequestBody": true,
               "ValidateRequestParameters": true,
-              "Name": "s3-gb97-images-dev | Validate request body and querystring parameters"
+              "Name": "s3-gb97-images-pos-prod | Validate request body and querystring parameters"
             }
           },
-          "ApiGatewayDeployment1690239634655": {
+          "ApiGatewayDeployment1694107404248": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
-              "StageName": "dev"
+              "StageName": "prod"
             },
             "DependsOn": [
-              "ApiGatewayMethodSignedurlGet"
+              "ApiGatewayMethodSignedurlGet",
+              "ApiGatewayMethodDeleteimageDelete"
             ]
           },
           "SignedURLLambdaPermissionApiGateway": {
@@ -572,10 +492,47 @@
               }
             }
           },
+          "DeleteImageLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "DeleteImageLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
           "S3Bucket": {
             "Type": "AWS::S3::Bucket",
             "Properties": {
-              "BucketName": "bucket-images-gb97",
+              "BucketName": "bucket-images-gb97-pos",
               "PublicAccessBlockConfiguration": {
                 "BlockPublicAcls": false,
                 "BlockPublicPolicy": false,
@@ -623,7 +580,7 @@
               "Ref": "ServerlessDeploymentBucket"
             },
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-ServerlessDeploymentBucketName"
+              "Name": "sls-s3-gb97-images-pos-prod-ServerlessDeploymentBucketName"
             }
           },
           "BaseLambdaLayerQualifiedArn": {
@@ -632,39 +589,39 @@
               "Ref": "BaseLambdaLayer"
             },
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-BaseLambdaLayerQualifiedArn"
+              "Name": "sls-s3-gb97-images-pos-prod-BaseLambdaLayerQualifiedArn"
             }
           },
           "BaseLambdaLayerHash": {
             "Description": "Current Lambda layer hash",
             "Value": "88f8db1f5deeea15fc23fcdef14eb8f0e442456c",
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-BaseLambdaLayerHash"
+              "Name": "sls-s3-gb97-images-pos-prod-BaseLambdaLayerHash"
             }
           },
           "BaseLambdaLayerS3Key": {
             "Description": "Current Lambda layer S3Key",
-            "Value": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z/nodejs.zip",
+            "Value": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z/nodejs.zip",
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-BaseLambdaLayerS3Key"
+              "Name": "sls-s3-gb97-images-pos-prod-BaseLambdaLayerS3Key"
             }
           },
           "SignedURLLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "SignedURLLambdaVersion7uLdijLItvh8GHU0IFFtHcG8lXFi6xk7sCnRbSbL02Q"
+              "Ref": "SignedURLLambdaVersionlzRfPCG5ENoBJT42wUyQzcweWqlwzBgJQTamETh8bs"
             },
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-SignedURLLambdaFunctionQualifiedArn"
+              "Name": "sls-s3-gb97-images-pos-prod-SignedURLLambdaFunctionQualifiedArn"
             }
           },
-          "ThumbGeneratorLambdaFunctionQualifiedArn": {
+          "DeleteImageLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ThumbGeneratorLambdaVersionp1EvTogHEjRovQtDN7Jnc5o9J53THgRSfmsgYBQo00"
+              "Ref": "DeleteImageLambdaVersionMXsaVkpE7YEPLpiaFCVe4zYIiBVLjeekgcvx17J8"
             },
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-ThumbGeneratorLambdaFunctionQualifiedArn"
+              "Name": "sls-s3-gb97-images-pos-prod-DeleteImageLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -685,12 +642,12 @@
                   {
                     "Ref": "AWS::URLSuffix"
                   },
-                  "/dev"
+                  "/prod"
                 ]
               ]
             },
             "Export": {
-              "Name": "sls-s3-gb97-images-dev-ServiceEndpoint"
+              "Name": "sls-s3-gb97-images-pos-prod-ServiceEndpoint"
             }
           }
         }
@@ -788,7 +745,7 @@
             "signedurl/handler.js",
             "node_modules/**"
           ],
-          "artifact": "/Users/johnango/Sites/GB97/uploadImagesS3-GB97/.serverless/signedURL.zip"
+          "artifact": "/Users/johnango/Sites/GB97/uploadImagesS3-POS/.serverless/signedURL.zip"
         },
         "events": [
           {
@@ -804,44 +761,42 @@
             }
           }
         ],
-        "name": "s3-gb97-images-dev-signedURL",
+        "name": "s3-gb97-images-pos-prod-signedURL",
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs14.x",
         "vpc": {},
-        "versionLogicalId": "SignedURLLambdaVersion7uLdijLItvh8GHU0IFFtHcG8lXFi6xk7sCnRbSbL02Q"
+        "versionLogicalId": "SignedURLLambdaVersionlzRfPCG5ENoBJT42wUyQzcweWqlwzBgJQTamETh8bs"
       },
-      "thumbGenerator": {
-        "handler": "thumbnail/handler.thumbnailGenerator",
-        "layers": {
-          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ThumbGeneratorLambdaFunction\"][\"Properties\"][\"Layers\"]"
-        },
+      "deleteImage": {
+        "handler": "deleteimg/handler.deleteImageFromS3",
         "package": {
           "patterns": [
-            "thumbnail/handler.js"
+            "deleteimage/handler.js",
+            "node_modules/**"
           ],
-          "artifact": "/Users/johnango/Sites/GB97/uploadImagesS3-GB97/.serverless/thumbGenerator.zip"
+          "artifact": "/Users/johnango/Sites/GB97/uploadImagesS3-POS/.serverless/deleteImage.zip"
         },
         "events": [
           {
-            "s3": {
-              "bucket": "bucket-images-gb97",
-              "event": "s3:ObjectCreated:*",
-              "existing": true,
-              "rules": [
-                {
-                  "prefix": "upload/"
+            "http": {
+              "path": "deleteimage",
+              "method": "delete",
+              "request": {
+                "parameters": {
+                  "method.request.querystring.filename": true
                 }
-              ]
+              },
+              "integration": "AWS_PROXY"
             }
           }
         ],
-        "name": "s3-gb97-images-dev-thumbGenerator",
+        "name": "s3-gb97-images-pos-prod-deleteImage",
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs14.x",
         "vpc": {},
-        "versionLogicalId": "ThumbGeneratorLambdaVersionp1EvTogHEjRovQtDN7Jnc5o9J53THgRSfmsgYBQo00"
+        "versionLogicalId": "DeleteImageLambdaVersionMXsaVkpE7YEPLpiaFCVe4zYIiBVLjeekgcvx17J8"
       }
     },
     "resources": {
@@ -849,7 +804,7 @@
         "S3Bucket": {
           "Type": "AWS::S3::Bucket",
           "Properties": {
-            "BucketName": "bucket-images-gb97",
+            "BucketName": "bucket-images-gb97-pos",
             "PublicAccessBlockConfiguration": {
               "BlockPublicAcls": false,
               "BlockPublicPolicy": false,
@@ -896,7 +851,7 @@
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
-      "service": "s3-gb97-images",
+      "service": "s3-gb97-images-pos",
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
@@ -905,8 +860,8 @@
         "patterns": [
           "!*/**"
         ],
-        "artifactsS3KeyDirname": "serverless/s3-gb97-images/dev/code-artifacts",
-        "artifactDirectoryName": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z"
+        "artifactsS3KeyDirname": "serverless/s3-gb97-images-pos/prod/code-artifacts",
+        "artifactDirectoryName": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z"
       },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
@@ -933,7 +888,7 @@
   },
   "package": {
     "individually": true,
-    "artifactDirectoryName": "serverless/s3-gb97-images/dev/1690239637681-2023-07-24T23:00:37.681Z",
+    "artifactDirectoryName": "serverless/s3-gb97-images-pos/prod/1694107408923-2023-09-07T17:23:28.923Z",
     "artifact": ""
   }
 }
