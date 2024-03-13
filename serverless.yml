@@ -1,17 +1,20 @@
-service: s3-gb97-images
+service: s3-cluster-images
 
 provider:
   name: aws
   runtime: nodejs14.x
-  stage: ${opt:stage, 'prod'} # Set the default stage to 'dev'
+  stage: "${self:provider.environment.STAGE}"
+  region: "${self:provider.environment.REGION_AWS}"
   iam:
     role:
       statements:
         - Effect: Allow
           Action: "s3:*"
-          Resource: arn:aws:s3:::bucket-images-gb97/*
+          Resource: arn:aws:s3:::"${self:provider.environment.BUCKET}"/*
   environment:
-    BUCKET: bucket-images-gb97-${self:provider.stage}
+    BUCKET: "${file(./serverlessEnv.js):bucketName.${self:provider.stage}.bucketName}"
+    STAGE: "${opt:stage, 'dev'}"
+    REGION_AWS: "${file(./serverlessEnv.js):region.${self:provider.stage}.regionAws}"
 
 package:
   individually: true
@@ -29,25 +32,45 @@ functions:
       - http:
           path: signedurl
           method: GET
+          cors:
+            origin: "*" # Aceptar todos los orígenes
+            headers: # Lista de encabezados permitidos
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false # Establecer en `true` si las credenciales, como las cookies, deben ser soportadas
           request:
             parameters:
               querystrings:
                 filename: true
-  thumbGenerator:
-    handler: thumbnail/handler.thumbnailGenerator
-    layers:
-      - { Ref: BaseLambdaLayer }
+
+  listObjects:
+    handler: s3manager/handler.listObjects
     package:
       patterns:
-        - "thumbnail/handler.js"
+        - "s3manager/handler.js"
+        - "node_modules/**"
     events:
-      - s3:
-          bucket: bucket-images-gb97
-          event: s3:ObjectCreated:*
-          existing: true
-          rules:
-            - prefix: upload/
-
+      - http:
+          path: list
+          method: POST
+  deleteImage:
+    handler: deleteimage/handler.deleteImageFromS3
+    package:
+      patterns:
+        - "deleteimage/handler.js"
+        - "node_modules/**"
+    events:
+      - http:
+          path: deleteimage
+          method: DELETE
+          request:
+            parameters:
+              querystrings:
+                filename: true
 layers:
   base:
     name: "prd-dependencies"
@@ -61,8 +84,7 @@ resources:
     S3Bucket:
       Type: "AWS::S3::Bucket"
       Properties:
-        BucketName: bucket-images-gb97
-        # Granting public access to bucket
+        BucketName: "${self:provider.environment.BUCKET}"
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false

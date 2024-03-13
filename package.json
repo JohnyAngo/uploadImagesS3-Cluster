@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
     "aws-sdk": "^2.1256.0",
     "serverless": "^3.33.0",
     "serverless-apigateway-service-proxy": "^2.2.1",
@@ -16,6 +17,7 @@
     "serverless-offline": "^11.3.0"
   },
   "dependencies": {
+    "jsonwebtoken": "^9.0.2",
     "sharp": "^0.31.2"
   }
 }
