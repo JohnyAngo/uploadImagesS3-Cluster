@@ -1,3 +1,24 @@
+// const AWS = require("aws-sdk")
+
+// const s3 = new AWS.S3({ signatureVersion: 'v4' })
+
+// const signedS3URL = async (event, context) => {
+//     const filename = event.queryStringParameters.filename
+//     const signedUrl = await s3.getSignedUrlPromise("putObject", {
+//         Key: `upload/${filename}`,
+//         Bucket: process.env.BUCKET,
+//         Expires: 300,
+//       });
+//     return {
+//         "statusCode": 200,
+//         "body": JSON.stringify({ signedUrl })
+//     }
+// }
+
+// module.exports = {
+//     signedS3URL
+// }
+
 const AWS = require("aws-sdk");
 
 const s3 = new AWS.S3({ signatureVersion: "v4" });
@@ -8,10 +29,6 @@ const headers = {
     "Content-Type,User-Agent, Authorization, X-Requested-With, action",
   "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT,DELETE",
 };
-
-//wwww.xxxxx.xxxx/dominio/files/crop/field/{cod_field}/{cod_monitoring}/
-//wwww.xxxxx.xxxx/dominio/files/crop/324safsfsdsdf/sdfsdf3243232/23432dwasdasd/
-//wwww.xxxxx.xxxx/dominio/files/sub1/sub2/sub3/sub4/
 
 const signedS3URL = async (event, context) => {
   const domain = event.queryStringParameters.domain;

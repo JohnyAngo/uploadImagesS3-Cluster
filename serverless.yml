@@ -71,6 +71,21 @@ functions:
             parameters:
               querystrings:
                 filename: true
+  # thumbGenerator:
+  #   handler: thumbnail/handler.thumbnailGenerator
+  #   layers:
+  #     - { Ref: BaseLambdaLayer }
+  #   package:
+  #     patterns:
+  #       - "thumbnail/handler.js"
+  #   events:
+  #     - s3:
+  #         bucket: bucket-images-gb97
+  #         event: s3:ObjectCreated:*
+  #         existing: true
+  #         rules:
+  #           - prefix: upload/
+
 layers:
   base:
     name: "prd-dependencies"
