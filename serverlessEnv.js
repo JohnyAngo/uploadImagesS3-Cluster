@@ -20,10 +20,10 @@ module.exports.region = () => ({
 
 module.exports.bucketName = () => ({
   dev: {
-    bucketName: "files-cluster-dev",
+    bucketName: "files-gear-dev",
   },
   prod: {
-    bucketName: "files-cluster-prod",
+    bucketName: "files-gear-prod",
   },
 });
 

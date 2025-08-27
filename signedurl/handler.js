@@ -1,24 +1,3 @@
-// const AWS = require("aws-sdk")
-
-// const s3 = new AWS.S3({ signatureVersion: 'v4' })
-
-// const signedS3URL = async (event, context) => {
-//     const filename = event.queryStringParameters.filename
-//     const signedUrl = await s3.getSignedUrlPromise("putObject", {
-//         Key: `upload/${filename}`,
-//         Bucket: process.env.BUCKET,
-//         Expires: 300,
-//       });
-//     return {
-//         "statusCode": 200,
-//         "body": JSON.stringify({ signedUrl })
-//     }
-// }
-
-// module.exports = {
-//     signedS3URL
-// }
-
 const AWS = require("aws-sdk");
 
 const s3 = new AWS.S3({ signatureVersion: "v4" });
@@ -32,16 +11,17 @@ const headers = {
 
 const signedS3URL = async (event, context) => {
   const domain = event.queryStringParameters.domain;
-  const pathSub1 = event.queryStringParameters.pathSub1;
+  const path = event.queryStringParameters.path;
   const pathSub2 = event.queryStringParameters.pathSub2;
   const pathSub3 = event.queryStringParameters.pathSub3;
   const pathSub4 = event.queryStringParameters.pathSub4;
   const filename = event.queryStringParameters.filename;
 
-  let s3Key = `upload/files/${domain}`;
+  // let s3Key = `upload/files/${domain}`;
+  let s3Key = `upload`;
 
-  if (pathSub1) {
-    s3Key += `/${pathSub1}`;
+  if (path) {
+    s3Key += `/${path}`;
     if (pathSub2) {
       s3Key += `/${pathSub2}`;
       if (pathSub3) {
@@ -61,10 +41,18 @@ const signedS3URL = async (event, context) => {
     Expires: 300,
   });
 
+  const url_save =
+    "https://" +
+    process.env.BUCKET +
+    ".s3." +
+    process.env.REGION_AWS +
+    ".amazonaws.com/" +
+    s3Key;
+
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ signedUrl, s3Key }),
+    body: JSON.stringify({ signedUrl, url_save }),
   };
 };
 

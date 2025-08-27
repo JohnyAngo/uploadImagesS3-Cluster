@@ -1,8 +1,8 @@
-service: s3-cluster-images
+service: s3-gear-images
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs16.x
   stage: "${self:provider.environment.STAGE}"
   region: "${self:provider.environment.REGION_AWS}"
   iam:
@@ -67,6 +67,16 @@ functions:
       - http:
           path: deleteimage
           method: DELETE
+          cors:
+            origin: "*" # Aceptar todos los orígenes
+            headers: # Lista de encabezados permitidos
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false # Establecer en `true` si las credenciales, como las cookies, deben ser soportadas
           request:
             parameters:
               querystrings:
@@ -90,7 +100,7 @@ layers:
   base:
     name: "prd-dependencies"
     compatibleRuntimes:
-      - "nodejs14.x"
+      - "nodejs16.x"
     package:
       artifact: app/nodejs.zip
 
